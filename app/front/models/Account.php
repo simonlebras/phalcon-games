@@ -2,12 +2,15 @@
 
 namespace App\Front\Models;
 
-use  Phalcon\Mvc\Model;
+use  Phalcon\Mvc\Model,
+    Phalcon\Mvc\Model\Behavior\Timestampable;
 
 use Phalcon\Mvc\Model\Validator\Email as Email;
 
 class Account extends Model
 {
+
+    const DEFAULT_AVATAR = "img/default_avatar.png";
 
     /**
      *
@@ -70,6 +73,12 @@ class Account extends Model
     public function initialize()
     {
         $this->hasMany('id', 'Score', 'account', array('alias' => 'Score'));
+        $this->addBehavior(new Timestampable(array(
+            'beforeValidationOnCreate' => array(
+                'field' => 'account_creation',
+                'format' => 'Y-m-d'
+            )
+        )));
     }
 
 }
