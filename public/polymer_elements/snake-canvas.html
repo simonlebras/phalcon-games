@@ -1,0 +1,201 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/bower_components/paper-icon-button/paper-icon-button.html"/>
+<link rel="import" href="/bower_components/core-localstorage/core-localstorage.html"/>
+
+<polymer-element name="snake-canvas" on-keydown="{{keydownHandler}}" on-direction-change="{{directionHandler}}"
+                 attributes="width height fps">
+    <template>
+        <style>
+            #container {
+                width: 100%;
+                height: 100%;
+            }
+
+            canvas {
+                display: block;
+                background-color: #03a9f4;
+            }
+
+            .controls {
+                width: 50%;
+                margin-top: 15px;
+            }
+        </style>
+        <div id="container" layout vertical center center-justified>
+            <canvas id="canvas" width="{{width}}" height="{{height}}"></canvas>
+            <div class="controls" layout horizontal justified center>
+                <paper-icon-button data-direction="left" icon="chevron-left"
+                                   on-tap="{{tapHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="up" icon="expand-less" on-tap="{{tapHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="down" icon="expand-more" on-tap="{{tapHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="right" icon="chevron-right"
+                                   on-tap="{{tapHandler}}"></paper-icon-button>
+            </div>
+        </div>
+        <core-localstorage name="snake" value="{{best}}"></core-localstorage>
+    </template>
+    <script>
+        Polymer({
+            ctx: {},
+            height: 480,
+            width: 800,
+            fps: 20,
+            now: {},
+            then: Date.now(),
+            interval: 0,
+            delta: {},
+            snake: {
+                array: [],
+                tail: {}
+            },
+            food: {},
+            box: {
+                fillColor: '#000000',
+                strokeColor: '#FFFFFF',
+                width: 20
+            },
+            score: 0,
+            best: 0,
+            keyPressed: '',
+            init: function () {
+                this.ctx = this.$.canvas.getContext('2d');
+                this.ctx.font = '15pt Arial';
+                this.start();
+            },
+            start: function () {
+                this.snake.array = [];
+                this.keyPressed = 'right';
+                this.score = 0;
+                for (var i = 0; i < 3; i++) {
+                    this.snake.array.unshift({
+                        x: i,
+                        y: 0
+                    });
+                }
+                this.createFood();
+                window.requestAnimationFrame(this.paint.bind(this));
+            },
+            createFood: function () {
+                this.food = {
+                    x: Math.round(Math.random() * (this.width - this.box.width) / this.box.width),
+                    y: Math.round(Math.random() * (this.height - this.box.width) / this.box.width)
+                };
+            },
+            paint: function () {
+                this.now = Date.now();
+                this.delta = this.now - this.then;
+                if (this.delta > this.interval) {
+                    this.then = this.now - (this.delta % this.interval);
+                    this.ctx.clearRect(0, 0, this.width, this.height);
+                    var x = this.snake.array[0].x;
+                    var y = this.snake.array[0].y;
+                    if (this.keyPressed === 'right') {
+                        x++;
+                    } else if (this.keyPressed === 'left') {
+                        x--;
+                    } else if (this.keyPressed === 'up') {
+                        y--;
+                    } else if (this.keyPressed === 'down') {
+                        y++;
+                    }
+                    if (x === -1 || x >= this.width / this.box.width || y === -1 || y >= this.height / this.box.width || this.checkCollision(x, y)) {
+                        alert('Perdu');
+                        this.start();
+                        return;
+                    }
+                    if (x === this.food.x && y === this.food.y) {
+                        this.snake.tail = {
+                            x: x,
+                            y: y
+                        };
+                        this.score++;
+                        if (this.score > this.best) {
+                            this.best = this.score
+                        }
+                        this.createFood();
+                    } else {
+                        this.snake.tail = this.snake.array.pop();
+                        this.snake.tail.x = x;
+                        this.snake.tail.y = y;
+                    }
+                    this.snake.array.unshift(this.snake.tail);
+                    for (var i = 0; i < this.snake.array.length; i++) {
+                        var c = this.snake.array[i];
+                        this.paintCell(c.x, c.y);
+                    }
+                    this.paintCell(this.food.x, this.food.y);
+                    this.ctx.fillText("Score:", 10, 25);
+                    this.ctx.fillText(this.score, 10, 50);
+                    this.ctx.fillText("Best Score:", 10, 75);
+                    this.ctx.fillText(this.best, 10, 100);
+                }
+                window.requestAnimationFrame(this.paint.bind(this));
+            },
+            paintCell: function (x, y) {
+                this.ctx.fillStyle = this.box.fillColor;
+                this.ctx.fillRect(x * this.box.width, y * this.box.width, this.box.width, this.box.width);
+                this.ctx.strokeStyle = this.box.strokeColor;
+                this.ctx.strokeRect(x * this.box.width, y * this.box.width, this.box.width, this.box.width);
+            },
+            checkCollision: function (x, y) {
+                for (var i = 0; i < this.snake.array.length; i++) {
+                    if (this.snake.array[i].x === x && this.snake.array[i].y === y) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            resize: function () {
+                var gameWidth = this.$.container.offsetWidth,
+                        gameHeight = this.$.container.offsetHeight,
+                        scaleToFitX = gameWidth / this.width,
+                        scaleToFitY = gameHeight / this.height,
+                        currentScreenRatio = gameWidth / gameHeight,
+                        optimalRatio = Math.min(scaleToFitX, scaleToFitY);
+                if (currentScreenRatio >= 1.77 && currentScreenRatio <= 1.79) {
+                    this.$.canvas.style.width = gameWidth + "px";
+                    this.$.canvas.style.height = gameHeight + "px";
+                }
+                else {
+                    this.$.canvas.style.width = this.width * optimalRatio + "px";
+                    this.$.canvas.style.height = this.height * optimalRatio + "px";
+                }
+            },
+            ready: function () {
+                this.resize();
+                window.addEventListener("resize", this.resize.bind(this), false);
+                this.tabIndex = 0;
+                this.focus();
+                this.interval = 1000 / this.fps;
+                this.init();
+            },
+            keydownHandler: function (event, detail, sender) {
+                var key = event.which;
+                if (key === 37 && this.keyPressed !== 'right') {
+                    this.keyPressed = 'left';
+                } else if (key === 38 && this.keyPressed !== 'down') {
+                    this.keyPressed = 'up';
+                } else if (key === 39 && this.keyPressed !== 'left') {
+                    this.keyPressed = 'right';
+                } else if (key === 40 && this.keyPressed !== 'up') {
+                    this.keyPressed = 'down';
+                }
+            },
+            tapHandler: function (event, detail, sender) {
+                this.fire('direction-change', {direction: sender.dataset['direction']});
+            },
+            directionHandler: function (event, detail, sender) {
+                var direction = event.detail.direction;
+                if (direction === 'left' && this.keyPressed !== 'right') {
+                    this.keyPressed = 'left';
+                } else if (direction === 'up' && this.keyPressed !== 'down') {
+                    this.keyPressed = 'up';
+                } else if (direction === 'right' && this.keyPressed !== 'left') {
+                    this.keyPressed = 'right';
+                } else if (direction === 'down' && this.keyPressed !== 'up') {
+                    this.keyPressed = 'down';
+                }
+            }
+        });
+    </script>
+</polymer-element>

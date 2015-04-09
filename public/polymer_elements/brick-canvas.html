@@ -1,0 +1,312 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/bower_components/paper-icon-button/paper-icon-button.html"/>
+<link rel="import" href="/bower_components/core-localstorage/core-localstorage.html"/>
+
+<polymer-element name="brick-canvas" on-keydown="{{keydownHandler}}" on-direction-change="{{directionHandler}}"
+                 on-mousemove="{{mousemoveHandler}}"
+                 attributes="width height fps lines columns">
+    <template>
+        <style>
+            #container {
+                width: 100%;
+                height: 100%;
+            }
+
+            canvas {
+                display: block;
+                background-color: #03a9f4;
+            }
+
+            .controls {
+                width: 50%;
+                margin-top: 15px;
+            }
+        </style>
+        <div id="container" layout vertical center center-justified>
+            <canvas id="canvas" width="{{width}}" height="{{height}}"></canvas>
+            <div class="controls" layout horizontal justified center>
+                <paper-icon-button data-direction="left" icon="chevron-left"
+                                   on-tap="{{tapHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="up" icon="expand-less" on-tap="{{tapHandler}}"
+                                   disabled></paper-icon-button>
+                <paper-icon-button data-direction="down" icon="expand-more" on-tap="{{tapHandler}}"
+                                   disabled></paper-icon-button>
+                <paper-icon-button data-direction="right" icon="chevron-right"
+                                   on-tap="{{tapHandler}}"></paper-icon-button>
+            </div>
+        </div>
+        <core-localstorage name="brick-breaker" value="{{best}}"></core-localstorage>
+    </template>
+    <script>
+        Polymer({
+            ctx: {},
+            height: 480,
+            width: 800,
+            fps: 70,
+            now: {},
+            then: Date.now(),
+            interval: 0,
+            delta: {},
+            lines: 5,
+            columns: 10,
+            score: 0,
+            best: 0,
+            bricks: {
+                array: [],
+                width: 0,
+                height: 15,
+                space: 2,
+                colors: ['#B71C1C', '#C62828', '#D32F2F', '#E53935', '#F44336'],
+                limit: 0
+            },
+            ball: {
+                color: '#000000',
+                size: 8,
+                speed: 10,
+                x: 100,
+                y: 250,
+                directionX: -1,
+                directionY: -1
+            },
+            paddle: {
+                width: 80,
+                height: 10,
+                x: 0,
+                y: 0,
+                color: '#000000',
+                move: 30
+            },
+            win: 0,
+            init: function () {
+                this.ctx = this.$.canvas.getContext('2d');
+                this.ctx.font = '15pt Arial';
+                this.bricks.width = (this.width - (this.bricks.space * (this.columns - 1))) / this.columns;
+                this.paddle.y = this.height - this.paddle.height;
+                this.bricks.limit = (this.bricks.space + this.bricks.height) * this.lines - this.bricks.space + this.ball.size;
+                this.start();
+            },
+            start: function () {
+                this.createBricks();
+                this.paddle.x = (this.width / 2) - (this.paddle.width / 2);
+                this.score = 0;
+                this.ball.x = 100;
+                this.ball.y = 250;
+                this.ball.directionX = -1;
+                this.ball.directionY = -1;
+                window.requestAnimationFrame(this.paint.bind(this));
+            },
+            paint: function () {
+                this.now = Date.now();
+                this.delta = this.now - this.then;
+                if (this.delta > this.interval) {
+                    this.then = this.now - (this.delta % this.interval);
+                    this.ctx.clearRect(0, 0, this.width, this.height);
+                    this.win = 1;
+                    this.ctx.fillStyle = this.paddle.color;
+                    this.ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.width, this.paddle.height);
+                    this.ball.x += this.ball.directionX * this.ball.speed;
+                    if (this.ball.x >= (this.width - this.ball.size)) {
+                        this.ball.x = this.width - this.ball.size;
+                        this.ball.directionX = -this.ball.directionX;
+                    } else if (this.ball.x <= this.ball.size) {
+                        this.ball.x = this.ball.size;
+                        this.ball.directionX = -this.ball.directionX;
+                    }
+
+                    this.ball.y += this.ball.directionY * this.ball.speed;
+                    if (this.ball.y >= (this.height + 2 * this.ball.size)) {
+                        this.ctx.fillStyle = this.ball.color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(this.ball.x, this.ball.y, this.ball.size, 0, Math.PI * 2, true);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        this.end('Perdu');
+                        return;
+                    } else if ((this.ball.y >= (this.height - this.paddle.height - this.ball.size) && (this.ball.y <= (this.height - this.paddle.height / 2))) && (this.ball.x >= this.paddle.x) && (this.ball.x <= (this.paddle.x + this.paddle.width))) {
+                        this.ball.y = this.height - this.paddle.height - this.ball.size;
+                        this.ball.directionY = -1;
+                        this.ball.directionX = 2 * (this.ball.x - (this.paddle.x + this.paddle.width / 2)) / this.paddle.width;
+                    } else if (this.ball.y <= this.ball.size) {
+                        this.ball.y = this.ball.size;
+                        this.ball.directionY = 1;
+                    }
+
+                    if (this.ball.y <= this.bricks.limit) {
+                        var x, y, top, bottom, left, right, position;
+
+                        for (var i = 0; i < this.lines; i++) {
+                            top = i * (this.bricks.height + this.bricks.space);
+                            bottom = this.bricks.height + top;
+
+                            if (this.ball.directionY >= 0) {
+                                position = (this.ball.y + this.ball.size);
+                            } else {
+                                position = (this.ball.y - this.ball.size);
+                            }
+                            if (((this.ball.y >= top) && (this.ball.y <= bottom)) || ((position >= top) && (position <= bottom))) {
+                                y = i;
+                                break;
+                            }
+                        }
+                        for (i = 0; i < this.columns; i++) {
+                            left = i * (this.bricks.width + this.bricks.space);
+                            right = this.bricks.width + left;
+
+                            if (this.ball.directionX >= 0) {
+                                position = (this.ball.x + this.ball.size);
+                            } else {
+                                position = (this.ball.x - this.ball.size);
+                            }
+                            if ((((this.ball.x >= left) && (this.ball.x <= right))) || ((position >= left) && (position <= right))) {
+                                x = i;
+                                break;
+                            }
+                        }
+                        if (typeof y !== 'undefined' && typeof x !== 'undefined' && this.bricks.array[y][x] === 1) {
+                            this.bricks.array[y][x] = 0;
+
+                            if (this.ball.directionY <= 0) {
+                                if ((this.ball.y - this.ball.size) <= bottom && (this.ball.x + this.ball.size) > left && (this.ball.x - this.ball.size) < right) {
+                                    this.ball.y = bottom + this.ball.size;
+                                    this.ball.directionY = 1;
+                                }
+                            } else {
+                                if ((this.ball.y + this.ball.size) >= top && (this.ball.x + this.ball.size) > left && (this.ball.x - this.ball.size) < right) {
+                                    this.ball.y = top - this.ball.size;
+                                    this.ball.directionY = -1;
+                                }
+                            }
+
+                            if (this.ball.directionX <= 0) {
+                                if ((this.ball.x - this.ball.size) <= right && (this.ball.y + this.ball.size) > top && (this.ball.y - this.ball.size) < bottom) {
+                                    this.ball.x = right + this.ball.size;
+                                    this.ball.directionX = -this.ball.directionX;
+                                }
+                            } else {
+                                if ((this.ball.x + this.ball.size) >= left && (this.ball.y + this.ball.size) > top && (this.ball.y - this.ball.size) < bottom) {
+                                    this.ball.x = left - this.ball.size;
+                                    this.ball.directionX = -this.ball.directionX;
+                                }
+                            }
+
+                            this.score++;
+                            if (this.score > this.best) {
+                                this.best = this.score
+                            }
+                        }
+                    }
+                    for (i = 0; i < this.lines; i++) {
+                        this.ctx.fillStyle = this.bricks.colors[(i % this.lines)];
+                        for (var j = 0; j < this.columns; j++) {
+                            if (this.bricks.array[i][j] === 1) {
+                                this.ctx.fillRect((j * (this.bricks.width + this.bricks.space)), (i * (this.bricks.height + this.bricks.space)), this.bricks.width, this.bricks.height);
+                                this.win = 0;
+                            }
+                        }
+                    }
+                    this.ctx.fillStyle = this.ball.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.ball.x, this.ball.y, this.ball.size, 0, Math.PI * 2, true);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    this.ctx.fillStyle = "#000000";
+                    this.ctx.fillText("Score:", 10, 25);
+                    this.ctx.fillText(this.score, 10, 50);
+                    this.ctx.fillText("Best Score:", 10, 75);
+                    this.ctx.fillText(this.best, 10, 100);
+                    if (this.win) {
+                        this.end('Gagné');
+                        return;
+                    }
+                }
+                window.requestAnimationFrame(this.paint.bind(this));
+            },
+            createBricks: function () {
+                this.bricks.array = new Array(this.lines);
+                for (var i = 0; i < this.lines; i++) {
+                    this.bricks.array[i] = new Array(this.columns);
+                    this.ctx.fillStyle = this.bricks.colors[i];
+                    for (var j = 0; j < this.columns; j++) {
+                        this.ctx.fillRect((j * (this.bricks.width + this.bricks.space)), (i * (this.bricks.height + this.bricks.space)), this.bricks.width, this.bricks.height);
+                        this.bricks.array[i][j] = 1;
+                    }
+                }
+            },
+            end: function (msg) {
+                alert(msg);
+                this.start();
+            },
+            resize: function () {
+                var gameWidth = this.$.container.offsetWidth,
+                        gameHeight = this.$.container.offsetHeight,
+                        scaleToFitX = gameWidth / this.width,
+                        scaleToFitY = gameHeight / this.height,
+                        currentScreenRatio = gameWidth / gameHeight,
+                        optimalRatio = Math.min(scaleToFitX, scaleToFitY);
+                if (currentScreenRatio >= 1.77 && currentScreenRatio <= 1.79) {
+                    this.$.canvas.style.width = gameWidth + "px";
+                    this.$.canvas.style.height = gameHeight + "px";
+                }
+                else {
+                    this.$.canvas.style.width = this.width * optimalRatio + "px";
+                    this.$.canvas.style.height = this.height * optimalRatio + "px";
+                }
+            },
+            ready: function () {
+                this.resize();
+                window.addEventListener("resize", this.resize.bind(this), false);
+                this.tabIndex = 0;
+                this.focus();
+                this.interval = 1000 / this.fps;
+                this.init();
+            },
+            keydownHandler: function (event, detail, sender) {
+                var key = event.which;
+                if (key === 39) {
+                    if ((this.paddle.x + this.paddle.width) < this.width) {
+                        this.paddle.x += this.paddle.move;
+                        if ((this.paddle.x + this.paddle.width) > this.width) {
+                            this.paddle.x = this.width - this.paddle.width;
+                        }
+                    }
+                } else if (key === 37) {
+                    if (this.paddle.x > 0) {
+                        this.paddle.x -= this.paddle.move;
+                        if (this.paddle.x < 0) {
+                            this.paddle.x = 0;
+                        }
+                    }
+                }
+            },
+            tapHandler: function (event, detail, sender) {
+                this.fire('direction-change', {direction: sender.dataset['direction']});
+            },
+            directionHandler: function (event, detail, sender) {
+                var direction = event.detail.direction;
+                if (direction === 'right') {
+                    if ((this.paddle.x + this.paddle.width) < this.width) {
+                        this.paddle.x += this.paddle.move;
+                        if ((this.paddle.x + this.paddle.width) > this.width) {
+                            this.paddle.x = this.width - this.paddle.width;
+                        }
+                    }
+                } else if (direction === 'left') {
+                    if (this.paddle.x > 0) {
+                        this.paddle.x -= this.paddle.move;
+                        if (this.paddle.x < 0) {
+                            this.paddle.x = 0;
+                        }
+                    }
+                }
+            },
+            mousemoveHandler: function (event, detail, sender) {
+                this.paddle.x = (this.width / (this.$.canvas.offsetWidth)) * event.clientX  - (this.paddle.width)- this.$.canvas.getBoundingClientRect().left;
+                if ((this.paddle.x + this.paddle.width) > this.width) {
+                    this.paddle.x = this.width - this.paddle.width;
+                } else if (this.paddle.x < 0) {
+                    this.paddle.x = 0;
+                }
+            }
+        });
+    </script>
+</polymer-element>

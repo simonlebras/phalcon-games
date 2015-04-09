@@ -1,0 +1,27 @@
+{
+  "name": "phalcon-games",
+  "version": "0.0.1",
+  "homepage": "https://github.com/simonlebras/phalcon-games",
+  "authors": [
+    "Simon Le Bras <lebras.simon@gmail.com>"
+  ],
+  "description": "Games website built with phalcon",
+  "keywords": [
+    "phalcon",
+    "php"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~3.3.4",
+    "polymer": "Polymer/polymer#~0.5.5",
+    "core-ajax": "Polymer/core-ajax#~0.5.5",
+    "font-roboto": "Polymer/font-roboto#~0.5.5",
+    "core-localstorage": "Polymer/core-localstorage#~0.5.5",
+    "easeljs": "~0.8.0",
+    "PreloadJS": "~0.6.0",
+    "createjs-soundjs": "~0.6.0",
+    "createjs-tweenjs": "~0.6.0",
+    "paper-elements": "Polymer/paper-elements#~0.5.5"
+  }
+}

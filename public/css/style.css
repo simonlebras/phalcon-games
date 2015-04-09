@@ -1,0 +1,43 @@
+/***** COMMON *****/
+*:focus {
+    outline: none;
+}
+
+footer {
+    border-top: 1px solid #e7e7e7;
+    margin-top: 40px;
+}
+
+.form-control:focus:valid {
+    border-color: #4cae4c;
+    box-shadow: 0 0 6px #5cb85c;
+}
+
+.form-control:focus:invalid {
+    border-color: #d43f3a;
+    box-shadow: 0 0 6px #d9534f;
+}
+
+/***** GAME *****/
+.game {
+    display: block;
+    width: 75%;
+    height: 60%;
+    margin: 0 auto;
+}
+
+/***** 404 *****/
+.not-found{
+width: 50%;
+margin: 0 auto;
+}
+
+.not-found h1, .not-found h2 {
+    text-align: center;
+}
+
+.not-found img {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
+}

@@ -1,0 +1,380 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/bower_components/paper-icon-button/paper-icon-button.html"/>
+
+<polymer-element name="pong-canvas" on-keydown="{{keydownHandler}}" on-keyup="{{keyupHandler}}"
+                 on-direction-change="{{directionHandler}}"
+                 attributes="width height fps">
+    <template>
+        <style>
+            #container {
+                position: relative;
+                width: 100%;
+                height: 100%;
+            }
+
+            canvas {
+                display: block;
+                background: url("/assets/pong/img/background.png") no-repeat;
+                background-size: 100% 100%;
+            }
+
+            .controls {
+                width: 50%;
+                margin-top: 15px;
+            }
+
+            #main-menu, #end-menu {
+                display: none;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            #main-menu {
+                background: url("/assets/pong/img/main.png") no-repeat;
+                background-size: 100% 100%;
+            }
+
+            #main-menu img, #end-menu img {
+                display: block;
+                cursor: pointer;
+            }
+
+            #main-menu img:first-child {
+                margin-bottom: 10px;
+            }
+
+            #end-menu img {
+                width: 50%;
+                margin: 0 auto;
+            }
+        </style>
+        <div id="container" layout vertical center center-justified>
+            <canvas id="canvas" width="{{width}}" height="{{height}}"></canvas>
+            <div class="controls" layout horizontal justified center>
+                <paper-icon-button data-direction="left" icon="chevron-left"
+                                   on-tap="{{tapHandler}}" disabled></paper-icon-button>
+                <paper-icon-button data-direction="up" icon="expand-less" on-mousedown="{{tapHandler}}"
+                                   on-mouseup="{{upHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="down" icon="expand-more" on-mousedown="{{tapHandler}}"
+                                   on-mouseup="{{upHandler}}"></paper-icon-button>
+                <paper-icon-button data-direction="right" icon="chevron-right"
+                                   on-tap="{{tapHandler}}" disabled></paper-icon-button>
+            </div>
+            <div id="main-menu">
+                <div>
+                    <img src="/assets/pong/img/start.png" alt="start button" on-tap="{{setupStage}}"/>
+                </div>
+            </div>
+            <div id="end-menu">
+                <div>
+                    <img id="end-button" src="" alt="end button" on-tap="{{setupStage}}"/>
+                </div>
+            </div>
+        </div>
+
+    </template>
+    <script src="/bower_components/easeljs/lib/easeljs-0.8.0.min.js"></script>
+    <script src="/bower_components/PreloadJS/lib/preloadjs-0.6.0.min.js"></script>
+    <script src="/bower_components/createjs-soundjs/lib/soundjs-0.6.0.min.js"></script>
+    <script>
+        Polymer({
+            stage: {},
+            height: 480,
+            width: 800,
+            fps: 60,
+            manifest: [
+                {src: "/assets/pong/img/main.png", id: "main"},
+                {src: "/assets/pong/img/start.png", id: "start"},
+                {src: "/assets/pong/img/paddle.png", id: "computer"},
+                {src: "/assets/pong/img/paddle.png", id: "player"},
+                {src: "/assets/pong/img/ball.png", id: "ball"},
+                {src: "/assets/pong/img/win.png", id: "win"},
+                {src: "/assets/pong/img/lose.png", id: "lose"},
+                {src: "/assets/pong/sound/playerScore.mp3", id: "playerScore"},
+                {src: "/assets/pong/sound/computerScore.mp3", id: "computerScore"},
+                {src: "/assets/pong/sound/hit.mp3", id: "hit"},
+                {src: "/assets/pong/sound/wall.mp3", id: "wall"}
+            ],
+            assets: {},
+            totalLoaded: 0,
+            player: {
+                speed: 20,
+                score: 0,
+                scoreText: {}
+            },
+            computer: {
+                speed: 10,
+                score: 0,
+                scoreText: {}
+            },
+            ball: {
+                speed: 10,
+                directionX: 1,
+                directionY: 1
+            },
+            keyDown: false,
+            mouseDown: false,
+            interval: undefined,
+            init: function () {
+                this.stage = new createjs.Stage(this.$.canvas);
+                this.stage.mouseEventsEnabled = true;
+                var queue = new createjs.LoadQueue();
+                createjs.Sound.alternateExtensions = ["ogg"];
+                queue.installPlugin(createjs.Sound);
+                queue.on("fileload", this.handleFileLoad.bind(this), this);
+                queue.loadManifest(this.manifest);
+            },
+            handleFileLoad: function (event) {
+                if (event.item.type === createjs.LoadQueue.IMAGE) {
+                    var img = new Image();
+                    img.src = event.item.src;
+                    img.onload = this.handleLoadComplete.bind(this);
+                    this.assets[event.item.id] = new createjs.Bitmap(img);
+                } else if (event.item.type === createjs.LoadQueue.SOUND) {
+                    this.handleLoadComplete.apply(this);
+                }
+            },
+            handleLoadComplete: function (event) {
+                this.totalLoaded++;
+                if (this.manifest.length == this.totalLoaded) {
+                    this.showMainMenu();
+                }
+            },
+            showMainMenu: function () {
+                this.$['main-menu'].style.display = 'flex';
+            },
+            setupStage: function () {
+                this.stage.addEventListener("stagemousemove", this.mousemoveHandler.bind(this));
+                this.player.score = 0;
+                this.computer.score = 0;
+                this.assets.player.x = 0;
+                this.assets.player.y = (this.height - this.assets.player.image.height) / 2;
+                this.assets.computer.x = this.width - this.assets.computer.image.width;
+                this.assets.computer.y = (this.height - this.assets.computer.image.height) / 2;
+                this.assets.ball.x = (this.width - this.assets.ball.image.width) / 2;
+                this.assets.ball.y = (this.height - this.assets.ball.image.height) / 2;
+                this.player.scoreText = new createjs.Text('0', 'bold 20pt Arial', '#A3FF24');
+                this.player.scoreText.x = (this.width / 2) - 30;
+                this.player.scoreText.y = 20;
+
+                this.computer.scoreText = new createjs.Text('0', 'bold 20pt Arial', '#A3FF24');
+                this.computer.scoreText.x = (this.width / 2) + 15;
+                this.computer.scoreText.y = 20;
+                this.stage.addChild(this.assets.player, this.assets.computer, this.assets.ball, this.player.scoreText, this.computer.scoreText);
+                this.stage.update();
+                this.$['main-menu'].style.display = 'none';
+                this.$['end-menu'].style.display = 'none';
+                createjs.Ticker.useRAF = true;
+                createjs.Ticker.setFPS(this.fps);
+                createjs.Ticker.addEventListener('tick', this.paint.bind(this));
+            },
+            start: function () {
+                this.player.score = 0;
+                this.computer.score = 0;
+            },
+            paint: function () {
+                this.assets.ball.x += this.ball.speed * this.ball.directionX;
+                this.assets.ball.y += this.ball.speed * this.ball.directionY;
+                if ((createjs.Ticker.getTicks() % 5) !== 0) {
+                    if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) < (this.assets.ball.y)) {
+                        this.assets.computer.y += this.computer.speed;
+                        if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) > (this.height - (this.assets.computer.image.height / 2))) {
+                            this.assets.computer.y = this.height - this.assets.computer.image.height;
+                        }
+                    }
+                    else if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) > this.assets.ball.y + this.assets.ball.image.height) {
+                        this.assets.computer.y -= this.computer.speed;
+                        if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) < (this.assets.computer.image.height / 2)) {
+                            this.assets.computer.y = 0;
+                        }
+                    }
+                }
+                if (this.assets.ball.y < 0) {
+                    this.assets.ball.y = 0;
+                    this.ball.directionY = -this.ball.directionY;
+                    //createjs.Sound.play('wall');
+                }
+                else if ((this.assets.ball.y + this.assets.ball.image.height) > this.height) {
+                    this.assets.ball.y = this.height - this.assets.ball.image.height;
+                    this.ball.directionY = -this.ball.directionY;
+                    //createjs.Sound.play('wall');
+                }
+
+                if ((this.assets.ball.x < this.assets.player.image.width ) && (this.assets.ball.y >= (this.assets.player.y - this.assets.ball.image.height)) && (this.assets.ball.y <= (this.assets.player.y + this.assets.player.image.height))) {
+                    this.assets.ball.x = this.assets.player.image.width;
+                    this.ball.directionX = -this.ball.directionX;
+                    if (this.assets.ball.y < (this.assets.player.y + (this.assets.player.image.height / 2))) {
+                        this.ball.directionY = -1;
+                    } else {
+                        this.ball.directionY = 1;
+                    }
+                    //createjs.Sound.play('hit');
+                }
+                else if ((this.assets.ball.x + this.assets.ball.image.width) > (this.width - (this.assets.computer.image.width / 2)) && (this.assets.ball.y >= (this.assets.computer.y - this.assets.ball.image.height)) && (this.assets.ball.y <= (this.assets.computer.y + this.assets.computer.image.height))) {
+                    this.assets.ball.x = this.width - this.assets.computer.image.width - this.assets.ball.image.width;
+                    this.ball.directionX = -this.ball.directionX;
+                    if (this.assets.ball.y < (this.assets.computer.y + (this.assets.computer.image.height / 2))) {
+                        this.ball.directionY = -1;
+                    } else {
+                        this.ball.directionY = 1;
+                    }
+                    //createjs.Sound.play('hit');
+                }
+                else if (this.assets.ball.x < (this.assets.player.image.width / 2)) {
+                    this.ball.directionX = -this.ball.directionX;
+                    this.computer.score++;
+                    this.computer.scoreText.text = String(this.computer.score);
+                    this.assets.ball.directionX = 1;
+                    this.assets.ball.x = (this.width - this.assets.ball.image.width) / 2;
+                    this.assets.ball.y = (this.height - this.assets.ball.image.height) / 2;
+                    //createjs.Sound.play('computerScore');
+                }
+                else if (this.assets.ball.x > (this.width - (this.assets.computer.image.width / 2))) {
+                    this.ball.directionX = -this.ball.directionX;
+                    this.player.score++;
+                    this.player.scoreText.text = String(this.player.score);
+                    this.assets.ball.directionX = -1;
+                    this.assets.ball.x = (this.width - this.assets.ball.image.width) / 2;
+                    this.assets.ball.y = (this.height - this.assets.ball.image.height) / 2;
+                    //createjs.Sound.play('playerScore');
+                }
+                if (this.player.score === 3) {
+                    this.endHandler('../assets/pong/img/win.png');
+                }
+                if (this.computer.score === 3) {
+                    this.endHandler('../assets/pong/img/lose.png');
+                }
+                this.stage.update();
+            },
+            resize: function () {
+                var gameWidth = this.$.container.offsetWidth,
+                        gameHeight = this.$.container.offsetHeight,
+                        scaleToFitX = gameWidth / this.width,
+                        scaleToFitY = gameHeight / this.height,
+                        currentScreenRatio = gameWidth / gameHeight,
+                        optimalRatio = Math.min(scaleToFitX, scaleToFitY);
+                if (currentScreenRatio >= 1.77 && currentScreenRatio <= 1.79) {
+                    this.$.canvas.style.width = gameWidth + "px";
+                    this.$.canvas.style.height = gameHeight + "px";
+                }
+                else {
+                    this.$.canvas.style.width = this.width * optimalRatio + "px";
+                    this.$.canvas.style.height = this.height * optimalRatio + "px";
+                }
+            },
+            endHandler: function (img) {
+                if (typeof this.interval !== 'undefined') {
+                    clearInterval(this.interval);
+                    this.interval = undefined;
+                }
+                this.$['end-button'].src = img;
+                this.stage.removeAllEventListeners();
+                createjs.Ticker.removeAllEventListeners();
+                this.stage.removeAllChildren();
+                this.$['end-menu'].style.display = 'flex';
+            },
+            ready: function () {
+                this.resize();
+                window.addEventListener("resize", this.resize.bind(this), false);
+                this.tabIndex = 0;
+                this.focus();
+                this.init();
+            },
+            keydownHandler: function (event, detail, sender) {
+                this.keyDown = true;
+                var key = event.which;
+                if (key === 38) {
+                    if (typeof this.interval === "undefined") {
+                        this.assets.player.y -= this.player.speed;
+                        if (this.assets.player.y < 0) {
+                            this.assets.player.y = 0;
+                        }
+                        this.interval = setInterval(function () {
+                            if (this.keyDown && this.assets.player.y > 0) {
+                                this.assets.player.y -= this.player.speed;
+                                if (this.assets.player.y < 0) {
+                                    this.assets.player.y = 0;
+                                }
+                            }
+                        }.bind(this), 100);
+                    }
+                } else if (key === 40) {
+                    if (typeof this.interval === "undefined") {
+                        this.assets.player.y += this.player.speed;
+                        if (this.assets.player.y > (this.height - this.assets.player.image.height)) {
+                            this.assets.player.y = this.height - this.assets.player.image.height;
+                        }
+
+                        this.interval = setInterval(function () {
+                            if (this.keyDown && (this.assets.player.y < (this.height - this.assets.player.image.height))) {
+                                this.assets.player.y += this.player.speed;
+                                if (this.assets.player.y > (this.height - this.assets.player.image.height)) {
+                                    this.assets.player.y = this.height - this.assets.player.image.height;
+                                }
+                            }
+                        }.bind(this), 100);
+                    }
+                }
+            },
+            tapHandler: function (event, detail, sender) {
+                this.fire('direction-change', {direction: sender.dataset['direction']});
+            },
+            upHandler: function (event, detail, sender) {
+                this.mouseDown = false;
+                clearInterval(this.interval);
+                this.interval = undefined;
+            },
+            keyupHandler: function (event, detail, sender) {
+                this.keyDown = false;
+                clearInterval(this.interval);
+                this.interval = undefined;
+            },
+            directionHandler: function (event, detail, sender) {
+                this.mouseDown = true;
+                var direction = event.detail.direction;
+                if (direction === 'up') {
+                    this.assets.player.y -= this.player.speed;
+                    if (this.assets.player.y < 0) {
+                        this.assets.player.y = 0;
+                    }
+                    if (typeof this.interval === "undefined") {
+                        this.interval = setInterval(function () {
+                            if (this.mouseDown && this.assets.player.y > 0) {
+                                this.assets.player.y -= this.player.speed;
+                                if (this.assets.player.y < 0) {
+                                    this.assets.player.y = 0;
+                                }
+                            }
+                        }.bind(this), 100);
+                    }
+                } else if (direction === 'down') {
+                    this.assets.player.y += this.player.speed;
+                    if (this.assets.player.y > (this.height - this.assets.player.image.height)) {
+                        this.assets.player.y = this.height - this.assets.player.image.height;
+                    }
+                    if (typeof this.interval === "undefined") {
+                        this.interval = setInterval(function () {
+                            if (this.mouseDown && (this.assets.player.y < (this.height - this.assets.player.image.height))) {
+                                this.assets.player.y += this.player.speed;
+                                if (this.assets.player.y > (this.height - this.assets.player.image.height)) {
+                                    this.assets.player.y = this.height - this.assets.player.image.height;
+                                }
+                            }
+                        }.bind(this), 100);
+                    }
+                }
+            },
+            mousemoveHandler: function (event) {
+                this.assets.player.y = this.stage.mouseY;
+                if (this.assets.player.y > (this.height - this.assets.player.image.height)) {
+                    this.assets.player.y = this.height - this.assets.player.image.height;
+                }
+            }
+        });
+    </script>
+</polymer-element>
