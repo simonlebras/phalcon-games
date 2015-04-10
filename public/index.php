@@ -63,6 +63,12 @@ $di->set('router', function () {
         'action' => 1
     ));
 
+    $router->add('/admin', array(
+        'module' => 'admin',
+        'controller' => 'admin',
+        'action' => 'index'
+    ));
+
     $router->add('/admin/:action', array(
         'module' => 'admin',
         'controller' => 'admin',
