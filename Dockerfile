@@ -28,7 +28,17 @@ RUN apt-get install -y -q apache2 libapache2-mod-php5 ;\
 
 RUN apt-get clean
 
-ADD etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
+
+RUN echo -e '<VirtualHost *:80>\n\
+ServerAdmin webmaster@localhost\n\
+DocumentRoot /var/www\n\
+<Directory /var/www>\n\
+Allow from All\n\
+AllowOverride All\n\
+Require all granted\n\
+</Directory>\n\
+</VirtualHost>'\
+> /etc/apache2/sites-available/000-default.conf
 
 ENV DEBIAN_FRONTEND dialog
 

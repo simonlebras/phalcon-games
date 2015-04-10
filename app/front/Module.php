@@ -23,6 +23,7 @@ class Module implements ModuleDefinitionInterface
             array(
                 'App\Front\Controllers' => $this->config->module->controllersDir,
                 'App\Front\Models' => $this->config->module->modelsDir,
+                'App\Front\Forms' => $this->config->module->formsDir,
             )
         );
         $loader->register();
@@ -32,9 +33,9 @@ class Module implements ModuleDefinitionInterface
     {
         $di->set('config', $this->config);
 
-        $di->set('dispatcher', function() {
+        $di->set('dispatcher', function () {
             $eventsManager = new Manager();
-            $eventsManager->attach("dispatch:beforeException", function($event, $dispatcher, $exception) {
+            $eventsManager->attach("dispatch:beforeException", function ($event, $dispatcher, $exception) {
                 if ($exception instanceof Exception) {
                     $dispatcher->forward(array(
                         'controller' => 'error',

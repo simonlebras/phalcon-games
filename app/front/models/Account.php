@@ -5,11 +5,8 @@ namespace App\Front\Models;
 use  Phalcon\Mvc\Model,
     Phalcon\Mvc\Model\Behavior\Timestampable;
 
-use Phalcon\Mvc\Model\Validator\Email as Email;
-
 class Account extends Model
 {
-
     const DEFAULT_AVATAR = "img/default_avatar.png";
 
     /**
@@ -47,25 +44,6 @@ class Account extends Model
      * @var string
      */
     public $account_creation;
-
-    /**
-     * Validations and business logic
-     */
-    public function validation()
-    {
-
-        $this->validate(
-            new Email(
-                array(
-                    'field' => 'email',
-                    'required' => true,
-                )
-            )
-        );
-        if ($this->validationHasFailed() == true) {
-            return false;
-        }
-    }
 
     /**
      * Initialize method for model.

@@ -1,28 +1,29 @@
 <div class="row">
     <div class="col-xs-8 col-xs-offset-2">
         <h1 class="text-center">Sign up</h1>
+        {{ form('account/signup', 'method' : 'post', 'enctype' : 'multipart/form-data', 'autocomplete' : 'off', 'novalidate' : 'true') }}
+        <div class="form-group">
+            {{ form.label('login') }}
+            {{ form.render('login') }}
+        </div>
+        {{ form.messages('login') }}
+        <div class="form-group">
+            {{ form.label('password') }}
+            {{ form.render('password') }}
+        </div>
+        {{ form.messages('password') }}
+        <div class="form-group">
+            {{ form.label('email') }}
+            {{ form.render('email') }}
+        </div>
+        {{ form.messages('email') }}
+        <div class="form-group">
+            <label for="file">Avatar</label>
+            <input type="file" id="file" name="file" required="true">
 
-        <form method="post" action="/account/signup" enctype="multipart/form-data" autocomplete="off" novalidate="true">
-            <div class="form-group">
-                <label for="login">Login</label>
-                <input type="text" class="form-control" id="login" name="login" placeholder="Login" required="true">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password"
-                       required="true">
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required="true">
-            </div>
-            <div class="form-group">
-                <label for="file">Avatar</label>
-                <input type="file" id="file" name="file" required="true">
-
-                <p class="help-block">Choose your avatar</p>
-            </div>
-            <button type="submit" class="btn btn-success btn-block">Submit</button>
-        </form>
+            <p class="help-block">Choose your avatar</p>
+        </div>
+        {{ form.render('Submit') }}
+        {{ end_form() }}
     </div>
 </div>
