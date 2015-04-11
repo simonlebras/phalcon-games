@@ -6,11 +6,9 @@ use Phalcon\Forms\Form,
     Phalcon\Forms\Element\Text,
     Phalcon\Forms\Element\Password,
     Phalcon\Forms\Element\Submit,
-    Phalcon\Validation\Validator\StringLength,
-    Phalcon\Validation\Validator\PresenceOf,
-    Phalcon\Validation\Validator\Email;
+    Phalcon\Validation\Validator\PresenceOf;
 
-class SignupForm extends Form
+class SigninForm extends Form
 {
     public function initialize($entity = null, $options = null)
     {
@@ -22,15 +20,12 @@ class SignupForm extends Form
             'id' => 'login',
             'name' => 'login',
             'placeholder' => 'Login',
-            'required' => 'true'
+            'required'=>'true',
+            'autofocus' => 'true'
         ));
         $login->addValidators(array(
             new PresenceOf(array(
                 'message' => 'The login is required'
-            )),
-            new StringLength(array(
-                'min' => 8,
-                'messageMinimum' => 'Login is too short. Minimum 8 characters'
             ))
         ));
         $this->add($login);
@@ -43,38 +38,14 @@ class SignupForm extends Form
             'id' => 'password',
             'name' => 'password',
             'placeholder' => 'Password',
-            'required' => 'true'
+            'required'=>'true'
         ));
         $password->addValidators(array(
             new PresenceOf(array(
                 'message' => 'The password is required'
-            )),
-            new StringLength(array(
-                'min' => 8,
-                'messageMinimum' => 'Password is too short. Minimum 8 characters'
             ))
         ));
         $this->add($password);
-
-        //Email
-        $email = new Text('email');
-        $email->setLabel('Email');
-        $email->setAttributes(array(
-            'class' => 'form-control',
-            'id' => 'email',
-            'name' => 'email',
-            'placeholder' => 'Email',
-            'required' => 'true'
-        ));
-        $email->addValidators(array(
-            new PresenceOf(array(
-                'message' => 'The Email is required'
-            )),
-            new Email(array(
-                'message' => 'The Email is not valid'
-            ))
-        ));
-        $this->add($email);
 
         $this->add(new Submit('Submit', array(
             'class' => 'btn btn-success btn-block'

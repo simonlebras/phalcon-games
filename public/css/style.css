@@ -3,6 +3,13 @@
     outline: none;
 }
 
+.nav > li > a > img {
+    vertical-align: middle;
+    max-height: 30px;
+    max-width: 30px;
+    margin-right: 10px;
+}
+
 footer {
     border-top: 1px solid #e7e7e7;
     margin-top: 40px;
@@ -51,4 +58,15 @@ footer {
     background-color: #f2dede;
     border-radius: 4px;
     color: #a94442;
+}
+
+/***** ADMIN MANAGE *****/
+.admin .table td{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.admin img{
+    max-width: 100px;
+    height: auto;
 }

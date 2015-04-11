@@ -10,7 +10,7 @@ use Phalcon\Forms\Form,
     Phalcon\Validation\Validator\PresenceOf,
     Phalcon\Validation\Validator\Email;
 
-class SignupForm extends Form
+class ManageForm extends Form
 {
     public function initialize($entity = null, $options = null)
     {
@@ -45,15 +45,6 @@ class SignupForm extends Form
             'placeholder' => 'Password',
             'required' => 'true'
         ));
-        $password->addValidators(array(
-            new PresenceOf(array(
-                'message' => 'The password is required'
-            )),
-            new StringLength(array(
-                'min' => 8,
-                'messageMinimum' => 'Password is too short. Minimum 8 characters'
-            ))
-        ));
         $this->add($password);
 
         //Email
@@ -79,6 +70,17 @@ class SignupForm extends Form
         $this->add(new Submit('Submit', array(
             'class' => 'btn btn-success btn-block'
         )));
+    }
+
+    function beforeValidation($data, $entity)
+    {
+        $elements = $this->getElements();
+        if (isset($data['password']) && !empty($data['password'])) {
+            $elements['password']->addValidator(new StringLength(array(
+                'min' => 8,
+                'messageMinimum' => 'Password is too short. Minimum 8 characters'
+            )));
+        }
     }
 
     public function messages($name)

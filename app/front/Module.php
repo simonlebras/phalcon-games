@@ -43,10 +43,6 @@ class Module implements ModuleDefinitionInterface
                     ));
                     return false;
                 }
-                $dispatcher->forward(array(
-                    'controller' => 'error',
-                    'action' => 'show503'
-                ));
                 return false;
             });
             $dispatcher = new Dispatcher();

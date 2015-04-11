@@ -3,7 +3,8 @@
 namespace App\Front\Models;
 
 use  Phalcon\Mvc\Model,
-    Phalcon\Mvc\Model\Behavior\Timestampable;
+    Phalcon\Mvc\Model\Behavior\Timestampable,
+    Phalcon\Mvc\Model\Validator\Uniqueness;
 
 class Account extends Model
 {
@@ -57,6 +58,17 @@ class Account extends Model
                 'format' => 'Y-m-d'
             )
         )));
+    }
+
+    public function validation()
+    {
+        $this->validate(new Uniqueness(array(
+            'field' => 'login',
+            'message' => 'This login is already used'
+        )));
+        if ($this->validationHasFailed() == true) {
+            return false;
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-xs-8 col-xs-offset-2">
-        <h1 class="text-center">Sign up</h1>
-        {{ form('account/signup', 'method' : 'post', 'enctype' : 'multipart/form-data', 'autocomplete' : 'off', 'novalidate' : 'true') }}
+        <h1 class="text-center">Manage account</h1>
+        {{ form('account/manage', 'method' : 'post', 'enctype' : 'multipart/form-data', 'autocomplete' : 'off', 'novalidate' : 'true') }}
         <div class="form-group">
             {{ form.label('login') }}
             {{ form.render('login') }}
@@ -23,7 +23,6 @@
 
             <p class="help-block">Choose your avatar</p>
         </div>
-        {{ content() }}
         {{ form.render('Submit') }}
         {{ end_form() }}
     </div>

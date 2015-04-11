@@ -8,6 +8,7 @@ use Phalcon\Loader,
     Phalcon\Mvc\Dispatcher,
     Phalcon\Events\Manager,
     Phalcon\Mvc\Dispatcher\Exception,
+    \Phalcon\Mvc\View\Engine\Volt,
     Phalcon\Config\Adapter\Ini as Config;
 
 class Module implements ModuleDefinitionInterface
@@ -22,7 +23,9 @@ class Module implements ModuleDefinitionInterface
         $loader->registerNamespaces(
             array(
                 'App\Admin\Controllers' => $this->config->module->controllersDir,
-                'App\Admin\Models' => $this->config->module->modelsDir,
+                'App\Admin\Models' => $this->config->module->adminModelsDir,
+                'App\Front\Models' => $this->config->module->frontModelsDir,
+                'App\Admin\Forms' => $this->config->module->formsDir,
             )
         );
         $loader->register();
@@ -32,9 +35,9 @@ class Module implements ModuleDefinitionInterface
     {
         $di->set('config', $this->config);
 
-        $di->set('dispatcher', function() {
+        $di->set('dispatcher', function () {
             $eventsManager = new Manager();
-            $eventsManager->attach("dispatch:beforeException", function($event, $dispatcher, $exception) {
+            $eventsManager->attach("dispatch:beforeException", function ($event, $dispatcher, $exception) {
                 if ($exception instanceof Exception) {
                     $dispatcher->forward(array(
                         'controller' => 'error',
@@ -42,10 +45,6 @@ class Module implements ModuleDefinitionInterface
                     ));
                     return false;
                 }
-                $dispatcher->forward(array(
-                    'controller' => 'error',
-                    'action' => 'show503'
-                ));
                 return false;
             });
             $dispatcher = new Dispatcher();
@@ -58,7 +57,12 @@ class Module implements ModuleDefinitionInterface
             $view = new View();
             $view->setViewsDir($this->config->module->viewsDir);
             $view->registerEngines(array(
-                '.volt' => 'Phalcon\Mvc\View\Engine\Volt'
+                ".volt" => function ($view, $di) {
+                    $volt = new Volt($view, $di);
+                    $compiler = $volt->getCompiler();
+                    $compiler->addFunction('strtotime', 'strtotime');
+                    return $volt;
+                }
             ));
             return $view;
         });
