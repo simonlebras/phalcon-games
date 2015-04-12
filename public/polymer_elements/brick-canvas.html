@@ -83,7 +83,16 @@
                 this.bricks.width = (this.width - (this.bricks.space * (this.columns - 1))) / this.columns;
                 this.paddle.y = this.height - this.paddle.height;
                 this.bricks.limit = (this.bricks.space + this.bricks.height) * this.lines - this.bricks.space + this.ball.size;
-                this.start();
+                $.ajax({
+                    url:"/game/brick/best",
+                    type: "GET"
+                }).done(function (data) {
+                    this.best = data;
+                    this.start();
+                }.bind(this)).fail(function () {
+                    this.best = 0;
+                    this.start();
+                }.bind(this));
             },
             start: function () {
                 this.createBricks();
@@ -191,7 +200,12 @@
 
                             this.score++;
                             if (this.score > this.best) {
-                                this.best = this.score
+                                this.best = this.score;
+                                $.ajax({
+                                    url:"/game/brick/best",
+                                    data: {score: this.score},
+                                    type: "POST"
+                                });
                             }
                         }
                     }

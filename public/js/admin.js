@@ -10,7 +10,7 @@ $(function () {
                 $('#'+id).fadeOut();
             }).fail(function () {
                 alert("An error occured");
-            })
+            });
         }
     });
 });

@@ -30,8 +30,8 @@ class Score extends Model
      */
     public function initialize()
     {
-        $this->belongsTo('account', 'Account', 'id', array('alias' => 'Account'));
-        $this->belongsTo('game', 'Game', 'name', array('alias' => 'Game'));
+        $this->belongsTo('account', 'App\Front\Models\Account', 'id', array('alias' => 'Account'));
+        $this->belongsTo('game', 'App\Front\Models\Game', 'name', array('alias' => 'Game'));
     }
 
 }

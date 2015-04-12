@@ -61,12 +61,22 @@ footer {
 }
 
 /***** ADMIN MANAGE *****/
-.admin .table td{
+.admin .table td {
     text-align: center;
     vertical-align: middle;
 }
 
-.admin img{
+.admin img {
     max-width: 100px;
     height: auto;
+}
+
+/***** BEST SCORES *****/
+.bests .score:not(:last-child) {
+    margin-bottom: 10px;
+}
+
+.bests .detail {
+    display: inline-block;
+    width: 100px;
 }

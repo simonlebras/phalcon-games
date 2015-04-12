@@ -60,7 +60,16 @@
             init: function () {
                 this.ctx = this.$.canvas.getContext('2d');
                 this.ctx.font = '15pt Arial';
-                this.start();
+                $.ajax({
+                    url:"/game/snake/best",
+                    type: "GET"
+                }).done(function (data) {
+                    this.best = data;
+                    this.start();
+                }.bind(this)).fail(function () {
+                    this.best = 0;
+                    this.start();
+                }.bind(this));
             },
             start: function () {
                 this.snake.array = [];
@@ -110,7 +119,12 @@
                         };
                         this.score++;
                         if (this.score > this.best) {
-                            this.best = this.score
+                            this.best = this.score;
+                            $.ajax({
+                                url:"/game/snake/best",
+                                data: {score: this.score},
+                                type: "POST"
+                            });
                         }
                         this.createFood();
                     } else {

@@ -24,7 +24,7 @@ class Game extends Model
      */
     public function initialize()
     {
-        $this->hasMany('name', 'Score', 'game', array('alias' => 'Score'));
+        $this->hasMany('name', 'App\Front\Models\Score', 'game', array('alias' => 'Score'));
     }
 
 }
