@@ -2,7 +2,6 @@
 
 namespace App\Front\Controllers;
 
-use App\Front\Models\Account;
 use App\Front\Models\Game;
 use App\Front\Models\Score;
 use Phalcon\Http\Response;

@@ -8,6 +8,7 @@ use Phalcon\Loader,
     Phalcon\Mvc\Dispatcher,
     Phalcon\Events\Manager,
     Phalcon\Mvc\Dispatcher\Exception,
+    Phalcon\Mvc\View\Engine\Volt,
     Phalcon\Config\Adapter\Ini as Config;
 
 class Module implements ModuleDefinitionInterface
@@ -55,7 +56,12 @@ class Module implements ModuleDefinitionInterface
             $view = new View();
             $view->setViewsDir($this->config->module->viewsDir);
             $view->registerEngines(array(
-                '.volt' => 'Phalcon\Mvc\View\Engine\Volt'
+                ".volt" => function ($view, $di) {
+                    $volt = new Volt($view, $di);
+                    $compiler = $volt->getCompiler();
+                    $compiler->addFunction('strtotime', 'strtotime');
+                    return $volt;
+                }
             ));
             return $view;
         });

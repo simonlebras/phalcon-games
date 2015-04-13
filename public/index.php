@@ -63,6 +63,12 @@ $di->set('router', function () {
         'action' => 1
     ));
 
+    $router->add('/guestbook/:action', array(
+        'module' => 'front',
+        'controller' => 'guestbook',
+        'action' => 1
+    ));
+
     $router->add('/admin', array(
         'module' => 'admin',
         'controller' => 'admin',

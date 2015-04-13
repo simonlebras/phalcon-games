@@ -37,6 +37,7 @@
                         </ul>
                     </li>
                     <li>{{ link_to("game/bests", "Best scores") }}</a></li>
+                    <li>{{ link_to("guestbook/post", "Guestbook") }}</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {%- if not(logged_in is empty) %}

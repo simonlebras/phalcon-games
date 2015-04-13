@@ -80,3 +80,12 @@ footer {
     display: inline-block;
     width: 100px;
 }
+
+/***** GUESTBOOK *****/
+.comment {
+    word-wrap: break-word;
+}
+
+.comment:not(:last-child) {
+    margin-bottom: 20px;
+}

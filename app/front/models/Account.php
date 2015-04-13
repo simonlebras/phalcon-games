@@ -52,6 +52,7 @@ class Account extends Model
     public function initialize()
     {
         $this->hasMany('id', 'Score', 'account', array('alias' => 'Score'));
+        $this->hasMany('id', 'Post', 'account', array('alias' => 'Post'));
         $this->addBehavior(new Timestampable(array(
             'beforeValidationOnCreate' => array(
                 'field' => 'account_creation',
