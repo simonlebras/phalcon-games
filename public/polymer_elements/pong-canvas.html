@@ -180,7 +180,7 @@
             paint: function () {
                 this.assets.ball.x += this.ball.speed * this.ball.directionX;
                 this.assets.ball.y += this.ball.speed * this.ball.directionY;
-                if ((createjs.Ticker.getTicks() % 5) !== 0) {
+                if ((createjs.Ticker.getTicks() % 6) !== 0) {
                     if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) < (this.assets.ball.y)) {
                         this.assets.computer.y += this.computer.speed;
                         if ((this.assets.computer.y + (this.assets.computer.image.height / 2)) > (this.height - (this.assets.computer.image.height / 2))) {
