@@ -1,0 +1,92 @@
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/bower_components/paper-input/paper-input-decorator.html">
+<link rel="import" href="/bower_components/paper-button/paper-button.html">
+
+<polymer-element name="guess-canvas">
+    <template>
+        <style>
+            #container {
+                width: 100%;
+                height: 100%;
+            }
+
+            .game {
+                display: block;
+                width: 80%;
+                max-width: 400px;
+                margin: 0 auto;
+                height: auto;
+            }
+
+            .block {
+                display: block;
+                width: 100%;
+            }
+
+            .submit {
+                margin-top: 10px;
+                background-color: #3e50b4;
+                color: white;
+            }
+
+            .result {
+                margin-top: 40px;
+                font-size: 23px;
+                text-align: center;
+            }
+        </style>
+        <div id="container" layout vertical center center-justified>
+            <div class="game">
+                <paper-input-decorator label="Enter a number" class="block">
+                    <input is="core-input" id="input">
+                </paper-input-decorator>
+                <paper-button id="submit" class="block submit" raised on-tap="{{tapHandler}}">Submit</paper-button>
+                <div id="result" class="result block">
+
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            input: {},
+            result:  {},
+            number: 0,
+            found: false,
+            init: function () {
+                this.input = this.$.input;
+                this.result = this.$.result;
+                this.start();
+            },
+            start: function () {
+                this.number = Math.round(Math.random() * 100);
+                this.found = false;
+                this.result.innerHTML = "";
+                this.$.submit.innerHTML = "Submit";
+                this.input.value = "";
+                console.log(this.number)
+            },
+            tapHandler: function () {
+                if (this.found){
+                    this.start();
+                } else {
+                    var value = parseInt(this.input.value, 10);
+                    if (!isNaN(value)) {
+                        if (this.number == value){
+                            this.result.innerHTML = "Congratulations, you have found the number !";
+                            this.$.submit.innerHTML = "Play again ?";
+                            this.found = true;
+                        } else if (this.number < value){
+                            this.result.innerHTML = "Less !";
+                        } else {
+                            this.result.innerHTML = "More !";
+                        }
+                    }
+                }
+            },
+            ready: function () {
+                this.init();
+            }
+        });
+    </script>
+</polymer-element>
