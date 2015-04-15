@@ -23,7 +23,9 @@
             </div>
             <div class="collapse navbar-collapse" id="navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li>{{ link_to("admin/manage", "Manage") }}</a></li>
+                    <li>{{ link_to("admin/manage", "Manage") }}</li>
+                    <li>{{ link_to("admin/guestbook", "Guestbook") }}</li>
+                    <li>{{ link_to("admin/map", "Map") }}</li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {%- if not(logged_in is empty) %}
@@ -51,5 +53,9 @@
 {{ javascript_include("bower_components/jquery/dist/jquery.min.js") }}
 {{ javascript_include("bower_components/bootstrap/dist/js/bootstrap.min.js") }}
 {{ javascript_include("js/admin.js") }}
+{% if map == true %}
+    {{ javascript_include("https://maps.googleapis.com/maps/api/js?v=3.exp") }}
+    {{ javascript_include("js/map.js") }}
+{% endif %}
 </body>
 </html>

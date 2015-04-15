@@ -1,4 +1,4 @@
-<div class=" admin">
+<div class="manage">
     <table class="table table-bordered table-hover table-striped">
         <tr>
             <th>Login</th>

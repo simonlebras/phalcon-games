@@ -7,6 +7,7 @@ use App\Admin\Forms\SigninForm,
     Phalcon\Mvc\Controller,
     Phalcon\Http\Response,
     App\Front\Models\Account;
+use App\Front\Models\Post;
 
 class AdminController extends Controller
 {
@@ -46,6 +47,29 @@ class AdminController extends Controller
         }
     }
 
+    public function deletecommentAction()
+    {
+        $this->view->disable();
+        if (!($this->session->get('admin'))) {
+            $response = new Response();
+            return $response->setStatusCode(401, "Authentication required");
+        }
+        if ($this->request->isPost()) {
+            $post = Post::findFirstById($this->request->getPost('id'));
+            $response = new Response();
+            if ($post) {
+                if ($post->delete()) {
+                    $response->setStatusCode(200, "Post deleted");
+                } else {
+                    $response->setStatusCode(504, "Server error");
+                }
+            } else {
+                $response->setStatusCode(404, "Not found");
+            }
+
+        }
+    }
+
     public function manageAction()
     {
         if (!($this->session->get('admin'))) {
@@ -53,6 +77,42 @@ class AdminController extends Controller
             return $response->redirect('admin/signin');
         }
         $this->view->accounts = Account::find();
+    }
+
+    public function guestbookAction()
+    {
+        if (!($this->session->get('admin'))) {
+            $response = new Response();
+            return $response->redirect('admin/signin');
+        }
+        $this->view->posts = Post::find();
+    }
+
+    public function mapAction()
+    {
+        if (!($this->session->get('admin'))) {
+            $response = new Response();
+            return $response->redirect('admin/signin');
+        }
+        $this->view->map = true;
+    }
+
+    public function userslocationAction()
+    {
+        $this->view->disable();
+        if (!($this->session->get('admin'))) {
+            $response = new Response();
+            return $response->redirect('admin/signin');
+        }
+        $accounts = Account::find(array(
+            'columns' => array('login', 'latitude', 'longitude')
+        ));
+        $result = array();
+        foreach ($accounts as $account) {
+            $result[$account->login] = array('latitude' => $account->latitude, 'longitude' => $account->longitude);
+        }
+        echo json_encode($result);
+
     }
 
     public function signinAction()

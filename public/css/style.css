@@ -61,14 +61,25 @@ footer {
 }
 
 /***** ADMIN MANAGE *****/
-.admin .table td {
+.manage .table td {
     text-align: center;
     vertical-align: middle;
 }
 
-.admin img {
+.manage img {
     max-width: 100px;
     height: auto;
+}
+
+/***** ADMIN GUESTBOOK *****/
+.guestbook td {
+    max-width: 200px;
+    word-wrap: break-word;
+}
+
+.guestbook td:not(.content) {
+    text-align: center;
+    vertical-align: middle;
 }
 
 /***** BEST SCORES *****/
@@ -88,4 +99,12 @@ footer {
 
 .comment:not(:last-child) {
     margin-bottom: 20px;
+}
+
+/***** ADMIN MAP *****/
+.map {
+    width: 80%;
+    height: 400px;
+    margin: 0 auto;
+    padding: 0;
 }

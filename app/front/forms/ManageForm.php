@@ -8,7 +8,8 @@ use Phalcon\Forms\Form,
     Phalcon\Forms\Element\Submit,
     Phalcon\Validation\Validator\StringLength,
     Phalcon\Validation\Validator\PresenceOf,
-    Phalcon\Validation\Validator\Email;
+    Phalcon\Validation\Validator\Email,
+    Phalcon\Validation\Validator\Regex;
 
 class ManageForm extends Form
 {
@@ -66,6 +67,48 @@ class ManageForm extends Form
             ))
         ));
         $this->add($email);
+
+        //Latitude
+        $latitude = new Text('latitude');
+        $latitude->setLabel('Latitude');
+        $latitude->setAttributes(array(
+            'class' => 'form-control',
+            'id' => 'latitude',
+            'name' => 'latitude',
+            'placeholder' => 'Latitude',
+            'required' => 'true'
+        ));
+        $latitude->addValidators(array(
+            new PresenceOf(array(
+                'message' => 'The latitude is required'
+            )),
+            new Regex(array(
+                'pattern' => '/^(\-?\d{1,3}(\.\d+)?)$/',
+                'message' => 'The latitude is invalid'
+            ))
+        ));
+        $this->add($latitude);
+
+        //Longitude
+        $longitude = new Text('longitude');
+        $longitude->setLabel('Longitude');
+        $longitude->setAttributes(array(
+            'class' => 'form-control',
+            'id' => 'longitude',
+            'name' => 'longitude',
+            'placeholder' => 'Longitude',
+            'required' => 'true'
+        ));
+        $longitude->addValidators(array(
+            new PresenceOf(array(
+                'message' => 'The longitude is required'
+            )),
+            new Regex(array(
+                'pattern' => '/^(\-?\d{1,3}(\.\d+)?)$/',
+                'message' => 'The longitude is invalid'
+            ))
+        ));
+        $this->add($longitude);
 
         $this->add(new Submit('Submit', array(
             'class' => 'btn btn-success btn-block'

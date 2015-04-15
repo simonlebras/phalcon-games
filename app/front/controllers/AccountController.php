@@ -56,6 +56,8 @@ class AccountController extends BaseController
                 $account->login = $this->request->getPost('login');
                 $account->password = $this->security->hash($this->request->getPost('password'));
                 $account->email = $this->request->getPost('email');
+                $account->latitude = $this->request->getPost('latitude');
+                $account->longitude = $this->request->getPost('longitude');
                 if ($this->request->hasFiles()) {
                     $file = $this->request->getUploadedFiles()[0];
                     if (($file->getExtension() == 'jpg') || ($file->getExtension() == 'jpeg') || ($file->getExtension() == 'png')) {
@@ -99,7 +101,7 @@ class AccountController extends BaseController
             $account = Account::find(array(
                 'conditions' => 'id = ?1',
                 'bind' => array(1=>$this->session->get('auth')['id']),
-                'columns' => array('login', 'email')
+                'columns' => array('login', 'email', 'latitude', 'longitude')
             ))->getFirst();
             $form = new ManageForm($account);
         }
@@ -110,6 +112,8 @@ class AccountController extends BaseController
                 $account = Account::findFirstById($this->session->get('auth')['id']);
                 $account->login = $this->request->getPost('login');
                 $password = $this->request->getPost('password');
+                $account->latitude = $this->request->getPost('latitude');
+                $account->longitude = $this->request->getPost('longitude');
                 if (!empty($password)){
                     $account->password = $this->security->hash($password);
                 }
@@ -137,6 +141,10 @@ class AccountController extends BaseController
                     ));
                     $response = new Response();
                     return $response->redirect('account/manage');
+                } else {
+                    foreach($account->getMessages() as $message){
+                        $this->flash->error($message);
+                    }
                 }
             }
         }

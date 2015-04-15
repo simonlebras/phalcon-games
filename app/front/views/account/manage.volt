@@ -18,11 +18,22 @@
         </div>
         {{ form.messages('email') }}
         <div class="form-group">
+            {{ form.label('latitude') }}
+            {{ form.render('latitude') }}
+        </div>
+        {{ form.messages('latitude') }}
+        <div class="form-group">
+            {{ form.label('longitude') }}
+            {{ form.render('longitude') }}
+        </div>
+        {{ form.messages('longitude') }}
+        <div class="form-group">
             <label for="file">Avatar</label>
             <input type="file" id="file" name="file" required="true">
 
             <p class="help-block">Choose your avatar</p>
         </div>
+        {{ content() }}
         {{ form.render('Submit') }}
         {{ end_form() }}
     </div>

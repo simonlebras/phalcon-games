@@ -38,6 +38,18 @@ class Account extends Model
      *
      * @var string
      */
+    public $latitude;
+
+    /**
+     *
+     * @var string
+     */
+    public $longitude;
+
+    /**
+     *
+     * @var string
+     */
     public $file;
 
     /**
