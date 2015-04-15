@@ -197,12 +197,12 @@
                 if (this.assets.ball.y < 0) {
                     this.assets.ball.y = 0;
                     this.ball.directionY = -this.ball.directionY;
-                    //createjs.Sound.play('wall');
+                    createjs.Sound.play('wall');
                 }
                 else if ((this.assets.ball.y + this.assets.ball.image.height) > this.height) {
                     this.assets.ball.y = this.height - this.assets.ball.image.height;
                     this.ball.directionY = -this.ball.directionY;
-                    //createjs.Sound.play('wall');
+                    createjs.Sound.play('wall');
                 }
 
                 if ((this.assets.ball.x < this.assets.player.image.width ) && (this.assets.ball.y >= (this.assets.player.y - this.assets.ball.image.height)) && (this.assets.ball.y <= (this.assets.player.y + this.assets.player.image.height))) {
@@ -213,7 +213,7 @@
                     } else {
                         this.ball.directionY = 1;
                     }
-                    //createjs.Sound.play('hit');
+                    createjs.Sound.play('hit');
                 }
                 else if ((this.assets.ball.x + this.assets.ball.image.width) > (this.width - (this.assets.computer.image.width / 2)) && (this.assets.ball.y >= (this.assets.computer.y - this.assets.ball.image.height)) && (this.assets.ball.y <= (this.assets.computer.y + this.assets.computer.image.height))) {
                     this.assets.ball.x = this.width - this.assets.computer.image.width - this.assets.ball.image.width;
@@ -223,7 +223,7 @@
                     } else {
                         this.ball.directionY = 1;
                     }
-                    //createjs.Sound.play('hit');
+                    createjs.Sound.play('hit');
                 }
                 else if (this.assets.ball.x < (this.assets.player.image.width / 2)) {
                     this.ball.directionX = -this.ball.directionX;
@@ -232,7 +232,7 @@
                     this.assets.ball.directionX = 1;
                     this.assets.ball.x = (this.width - this.assets.ball.image.width) / 2;
                     this.assets.ball.y = (this.height - this.assets.ball.image.height) / 2;
-                    //createjs.Sound.play('computerScore');
+                    createjs.Sound.play('computerScore');
                 }
                 else if (this.assets.ball.x > (this.width - (this.assets.computer.image.width / 2))) {
                     this.ball.directionX = -this.ball.directionX;
@@ -241,7 +241,7 @@
                     this.assets.ball.directionX = -1;
                     this.assets.ball.x = (this.width - this.assets.ball.image.width) / 2;
                     this.assets.ball.y = (this.height - this.assets.ball.image.height) / 2;
-                    //createjs.Sound.play('playerScore');
+                    createjs.Sound.play('playerScore');
                 }
                 if (this.player.score === 3) {
                     this.endHandler('../assets/pong/img/win.png');
